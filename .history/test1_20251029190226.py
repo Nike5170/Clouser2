@@ -36,10 +36,6 @@ CUSTOM_CONFIG = {
     'ETHUSDT': {
         'STOP_LOSS_PCT': 0.003,
 
-    },
-    'SOLUSDT': {
-        'STOP_LOSS_PCT': 0.004,
-
     }
 }
 
@@ -168,6 +164,7 @@ async def place_stop_loss(client, symbol, side, position_side):
             "side": side,
             "type": 'STOP_MARKET',
             "stopPrice": price,
+            "timeInForce": 'GTC',
         }
 
         if close_position:

@@ -7,8 +7,8 @@ import hashlib
 from urllib.parse import urlencode
 from datetime import datetime
 
-API_KEY    = "8DDoSAA0xs5UUBqN4q"
-API_SECRET = "VH3xlJxRyAiOEceKNOig9OhgED5ttlwgJHKr"
+API_KEY    = "TKCSBRh0oWIXaS3SC0"
+API_SECRET = "MgAq2McTsjs4w1iwpGKyRRynWe5BGNUo61m9"
 SYMBOL     = "ICNTUSDT"
 QTY        = 15
 BASE       = "https://api.bybit.com"
