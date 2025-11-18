@@ -95,9 +95,8 @@ async def load_all_symbol_precisions():
             continue
 
         # вычисляем количество знаков после запятой
-        price_decimals = count_decimals_from_step(price_tick)
-        qty_decimals = count_decimals_from_step(qty_step)
-
+        price_decimals = max(0, -int(math.log10(price_tick)))
+        qty_decimals = max(0, -int(math.log10(qty_step)))
 
         prev = SYMBOL_FILTERS.get(symbol)
 
@@ -113,12 +112,6 @@ async def load_all_symbol_precisions():
 
     await logger.log(f"🔄 Обновление tickSize завершено: {updated}/{total} изменено.")
 
-
-def count_decimals_from_step(step):
-    s = '{:.18f}'.format(step).rstrip('0')
-    if '.' in s:
-        return len(s.split('.')[-1])
-    return 0
 
 async def symbol_precision_updater_daily():
     """
@@ -228,8 +221,6 @@ async def place_market_close(client, symbol, position_side):
     except Exception as e:
         asyncio.create_task(logger.log(f"[{symbol}] Failed to close position: {e}"))
 
-def round_step(value, step):
-    return math.floor(value / step) * step
 
 async def place_stop_loss(client, symbol, side, position_side):
     try:
@@ -247,11 +238,15 @@ async def place_stop_loss(client, symbol, side, position_side):
 
         close_position = data.get('close_position', False)
 
+        # ====== ✔ Достаём точные данные из SYMBOL_FILTERS ======
+        price_decimals = SYMBOL_FILTERS.get(symbol, {}).get("price_decimals", 4)
+        qty_decimals = SYMBOL_FILTERS.get(symbol, {}).get("qty_decimals", 4)
 
         # ✔ округляем стоп по tickSize
-        price = round_step(price, SYMBOL_FILTERS[symbol]["price_tick"])
-        quantity = round_step(quantity, SYMBOL_FILTERS[symbol]["qty_step"])
+        price = round(price, price_decimals)
 
+        # ✔ округляем количество по stepSize
+        quantity = round(quantity, qty_decimals)
 
         # Формируем параметры
         order_params = {
@@ -504,19 +499,10 @@ async def telegram_command_listener():
                                 await send_telegram_message(chat_id, "✅ Обработка полностью остановлена и очищена.")
                             else:
                                 await send_telegram_message(chat_id, "⚠️ Обработка ещё не была запущена.")
-                        elif text == "/update_symbols":
-                            for api in API_KEYS:
-                                if api["tg_id"] == chat_id:
-                                    await logger.log("⏳ Ручное обновление tickSize символов...", tg_id)
-                                    await load_all_symbol_precisions()
-                                    await send_telegram_message(chat_id, "✅ tickSize символов обновлены вручную.")
-                                    break
-                            else:
-                                await send_telegram_message(chat_id, "❌ Не найден API-ключ для этого Telegram ID.")
                         else: 
                             for api in API_KEYS:
                                 if api["tg_id"] == chat_id:
-                                    await send_telegram_message(chat_id, "🤖 Используйте команды /start , /stop и /update_symbols.")
+                                    await send_telegram_message(chat_id, "🤖 Используйте команды /start и /stop.")
 
             except Exception as e:
                 print(f"[{now()}] [TG-LISTENER] Ошибка: {e}")

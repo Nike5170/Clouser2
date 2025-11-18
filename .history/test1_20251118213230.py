@@ -504,19 +504,10 @@ async def telegram_command_listener():
                                 await send_telegram_message(chat_id, "✅ Обработка полностью остановлена и очищена.")
                             else:
                                 await send_telegram_message(chat_id, "⚠️ Обработка ещё не была запущена.")
-                        elif text == "/update_symbols":
-                            for api in API_KEYS:
-                                if api["tg_id"] == chat_id:
-                                    await logger.log("⏳ Ручное обновление tickSize символов...", tg_id)
-                                    await load_all_symbol_precisions()
-                                    await send_telegram_message(chat_id, "✅ tickSize символов обновлены вручную.")
-                                    break
-                            else:
-                                await send_telegram_message(chat_id, "❌ Не найден API-ключ для этого Telegram ID.")
                         else: 
                             for api in API_KEYS:
                                 if api["tg_id"] == chat_id:
-                                    await send_telegram_message(chat_id, "🤖 Используйте команды /start , /stop и /update_symbols.")
+                                    await send_telegram_message(chat_id, "🤖 Используйте команды /start и /stop.")
 
             except Exception as e:
                 print(f"[{now()}] [TG-LISTENER] Ошибка: {e}")
